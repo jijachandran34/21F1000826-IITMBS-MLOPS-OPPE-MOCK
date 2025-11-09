@@ -1,0 +1,13 @@
+project: mock_feast_project
+registry: data/registry.db
+provider: local
+
+online_store:
+    type: redis
+    connection_string: "localhost:6379,db=0"
+
+offline_store:
+    type: file
+
+auth:
+    type: no_auth
