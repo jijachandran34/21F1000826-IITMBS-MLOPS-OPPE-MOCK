@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+myenv/
+.myenv/
+
+# DVC
+.dvc/cache
+.dvc/tmp
+
+# Data - Never commit raw or processed data to Git
+dataversions/
+processed_data/
+/data
