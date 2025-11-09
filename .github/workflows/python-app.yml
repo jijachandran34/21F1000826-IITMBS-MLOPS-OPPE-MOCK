@@ -25,9 +25,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-html cml feast[redis] mlflow scikit-learn pandas matplotlib pyarrow
+          pip install --no-cache-dir -r requirements.txt
 
+      - name: Verify Python environment
+        run: |
+          pip check
+          python -c "import feast, mlflow, pytest; print('✅ All core libraries loaded')"
       # 4️⃣ Authenticate with GCP
       - name: Authenticate with GCP
         env:
