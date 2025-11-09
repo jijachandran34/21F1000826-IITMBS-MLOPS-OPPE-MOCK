@@ -3,4 +3,5 @@
 ['remote "gcs"']
     url = gs://practice_826/dvc-storage
 ['remote "gcsremote"']
-    url = gs://practice_826/dvcstore
+    url = gs://practice-826/dvcstore
+    credentialpath = /home/jupyter/mock/gcp-key.json

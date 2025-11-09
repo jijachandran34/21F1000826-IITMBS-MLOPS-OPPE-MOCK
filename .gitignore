@@ -14,6 +14,6 @@ myenv/
 .dvc/tmp
 
 # Data - Never commit raw or processed data to Git
-dataversions/
 processed_data/
 /data
+gcp-key.json
