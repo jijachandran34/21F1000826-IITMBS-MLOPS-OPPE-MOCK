@@ -5,7 +5,7 @@ scikit-learn==1.5.2
 joblib
 
 # Feature Store
-feast[gcp]==0.54.0
+feast[gcp,redis]==0.54.0
 
 # Data Versioning & Cloud Storage
 dvc==3.63.0
@@ -20,4 +20,5 @@ pytest-cov
 mlflow==3.5.0
 
 # File formats
-pyarrow
+pyarrow==17.0.0
+
