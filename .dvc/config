@@ -1,0 +1,6 @@
+[core]
+    remote = gcsremote
+['remote "gcs"']
+    url = gs://practice_826/dvc-storage
+['remote "gcsremote"']
+    url = gs://practice_826/dvcstore
