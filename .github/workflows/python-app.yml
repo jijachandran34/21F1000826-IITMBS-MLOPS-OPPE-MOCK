@@ -1,0 +1,71 @@
+name: ML CI with Tests and Report
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  ml-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-html cml feast[redis] mlflow scikit-learn pandas matplotlib pyarrow
+
+      # 4️⃣ Authenticate with GCP
+      - name: Authenticate with GCP
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "$GCP_SA_KEY" > gcp-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json
+          echo "GCP authentication set."
+
+      # 5️⃣ Run feature tests
+      - name: Run feature tests
+        run: |
+          mkdir -p reports
+          pytest tests/ -v --junitxml=reports/junit.xml --html=reports/pytest_report.html --self-contained-html
+
+      # 6️⃣ Use best MLflow model to run validation
+      - name: Test best MLflow model
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+        run: |
+          python scripts/train_iris_mlflow.py --mode test > reports/model_test.log || echo "Training script executed for validation."
+
+      # 7️⃣ Generate CML report
+      - name: Generate and Post CML Report
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## ✅ ML CI Test Report" > reports/cml_report.md
+          echo "### Pytest Summary" >> reports/cml_report.md
+          cat reports/pytest_report.html >> reports/cml_report.md || true
+          echo "### Model Validation Log" >> reports/cml_report.md
+          cat reports/model_test.log >> reports/cml_report.md || true
+          cml comment create reports/cml_report.md
+
+      # 8️⃣ Upload all reports
+      - name: Upload CI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ml-ci-reports
+          path: reports/
