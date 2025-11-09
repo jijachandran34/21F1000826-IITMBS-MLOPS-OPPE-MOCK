@@ -17,3 +17,5 @@ myenv/
 processed_data/
 /data
 gcp-key.json
+.ipynb_checkpoints
+scripts/.ipynb_checkpoints/
