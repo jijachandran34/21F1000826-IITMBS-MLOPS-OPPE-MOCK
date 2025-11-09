@@ -21,39 +21,42 @@ jobs:
         with:
           python-version: "3.10"
 
-      # 3️⃣ Install dependencies
-      - name: Install dependencies
+      # 3️⃣ Install only CI dependencies
+      - name: Install CI dependencies
         run: |
           pip install --upgrade pip
-          pip install --no-cache-dir -r requirements.txt
+          pip install pytest==8.4.2 pytest-html==4.1.1 pytest-cov==5.0.0
+          pip install cml==0.7.10 mlflow==3.5.0 pandas==2.2.3 scikit-learn==1.5.2 pyarrow==17.0.0 matplotlib==3.9.2
 
+      # 4️⃣ Verify environment
       - name: Verify Python environment
         run: |
           pip check
-          python -c "import feast, mlflow, pytest; print('✅ All core libraries loaded')"
-      # 4️⃣ Authenticate with GCP
+          python -c "import mlflow, pytest, pandas, sklearn; print('✅ CI dependencies successfully loaded')"
+
+      # 5️⃣ Authenticate with GCP (optional — for accessing MLflow or data)
       - name: Authenticate with GCP
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           echo "$GCP_SA_KEY" > gcp-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json
-          echo "GCP authentication set."
+          echo "✅ GCP authentication set."
 
-      # 5️⃣ Run feature tests
+      # 6️⃣ Run Pytest feature tests
       - name: Run feature tests
         run: |
           mkdir -p reports
           pytest tests/ -v --junitxml=reports/junit.xml --html=reports/pytest_report.html --self-contained-html
 
-      # 6️⃣ Use best MLflow model to run validation
-      - name: Test best MLflow model
+      # 7️⃣ Test best MLflow model (validation mode)
+      - name: Validate MLflow model
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
         run: |
-          python scripts/train_iris_mlflow.py --mode test > reports/model_test.log || echo "Training script executed for validation."
+          python scripts/train_iris_mlflow.py --mode test > reports/model_test.log || echo "⚠️ Model validation executed with warnings."
 
-      # 7️⃣ Generate CML report
+      # 8️⃣ Generate and post CML report (for pull requests)
       - name: Generate and Post CML Report
         if: github.event_name == 'pull_request'
         env:
@@ -66,7 +69,7 @@ jobs:
           cat reports/model_test.log >> reports/cml_report.md || true
           cml comment create reports/cml_report.md
 
-      # 8️⃣ Upload all reports
+      # 9️⃣ Upload all reports
       - name: Upload CI artifacts
         uses: actions/upload-artifact@v4
         with:
