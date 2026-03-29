@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import os
+import sys
+
 
 # --- Configuration ---
 EXPERIMENT_NAME = "iris_prediction"
@@ -13,6 +15,18 @@ EXPERIMENT_NAME = "iris_prediction"
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://34.42.55.177:5000/")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment(EXPERIMENT_NAME)
+
+# ✅ -----------------------------
+# Validation Mode (for CI testing)
+# -----------------------------
+if "--mode" in sys.argv and sys.argv[sys.argv.index("--mode")+1] == "test":
+    print("🔹 Running validation mode: loading best model from MLflow registry...")
+    model_uri = "models:/iris_prediction_random_forest/Production"
+    model = mlflow.sklearn.load_model(model_uri)
+    print("✅ Model loaded successfully.")
+    sys.exit(0)
+# ✅ -----------------------------
+
 
 # --- Feast Setup ---
 fs = FeatureStore(repo_path="feature_repo")
